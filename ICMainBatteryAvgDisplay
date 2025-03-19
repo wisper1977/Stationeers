@@ -1,1 +1,60 @@
+# Alias assignments
+alias trans d0     # Transmitter (sends the final averaged data)
+alias rec1 d1      # Receiver 1
+alias rec2 d2      # Receiver 2
+alias rec3 d3      # Receiver 3
+alias rec4 d4      # Receiver 4
+alias led d5       # LED display
 
+# Main loop
+main:
+
+# Initialize sum and count
+set r4 0  # Sum of valid values
+set r5 0  # Count of active receivers
+
+# Read values from all four receivers and count active ones
+l r0 rec1 Setting
+breqz r0 skip1  # If r0 == 0, skip adding it
+add r4 r4 r0
+add r5 r5 1
+skip1:
+
+l r1 rec2 Setting
+breqz r1 skip2
+add r4 r4 r1
+add r5 r5 1
+skip2:
+
+l r2 rec3 Setting
+breqz r2 skip3
+add r4 r4 r2
+add r5 r5 1
+skip3:
+
+l r3 rec4 Setting
+breqz r3 skip4
+add r4 r4 r3
+add r5 r5 1
+skip4:
+
+# Check if we have at least one active receiver to avoid division by zero
+breqz r5 no_data
+
+# Compute the average (sum / count of active receivers)
+div r6 r4 r5
+j transmit
+
+# Handle case where no receivers are active
+no_data:
+set r6 0  # Set average to 0 if no devices are connected
+
+# Transmit the averaged value
+transmit:
+a trans Setting r6
+
+# Display the averaged value on the LED
+s led Setting r6
+
+# Loop back to main
+j main
