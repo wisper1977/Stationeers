@@ -1,28 +1,62 @@
+# Remote Battery Controller
 # Alias assignments
 alias trans d0     # Transmitter (sends local average to master)
 alias rec d1       # Receiver (gets the running average from master)
 alias led d5       # LED display
 
+# Register aliases
+alias device r0     # Current battery index (0-5 for devices)
+alias batteryType1 r6  # First battery hash type
+alias batteryType2 r7  # Second battery hash type
+alias sumRatios r8    # Sum of ratios from active batteries
+alias activeCount r9  # Count of active batteries
+
+# Define the hashes for different battery types
+set batteryType1 -1388288459  # Hash for the first type
+set batteryType2 -400115994   # Hash for the second type
+
 # Main loop
 main:
+set device 0       # Start with the first battery
+set sumRatios 0    # Reset sum of ratios
+set activeCount 0  # Reset active battery count
 
-# Initialize local ratio variable
-set r0 0
+# Loop to check and sum ratios for all batteries
+loop:
+slt r10 device 6  # Check if device < 6 (max 6 batteries)
+blez r10 done     # Exit loop if device >= 6
 
-# Read the ratio from all Station Batteries connected to local network
-lb r0 -1388288459 Ratio Average
+bdns dr0 skip     # Skip if device is not assigned
+l r11 dr0 Hash    # Get the hash of the current battery
 
-# Check if a valid ratio was read (avoid transmitting garbage data)
-breqz r0 no_data
+# Check if the battery type matches either of the defined hashes
+beq r11 batteryType1 skip   # Skip if it is not the first battery type
+beq r11 batteryType2 skip   # Skip if it is not the second battery type
 
-# Transmit the average ratio to the master controller
-a trans Setting r0
-j receive
+# If battery type matches, sum the ratio and count the active device
+lb r12 dr0 Ratio Average   # Get the battery's ratio
+add sumRatios sumRatios r12  # Add to the sum
+add activeCount activeCount 1  # Increment active count
 
-# If no valid data, transmit 0
+skip:
+add device device 1        # Move to the next battery
+j loop                    # Repeat loop
+
+# Done processing batteries
+done:
+breqz activeCount no_data  # If no active batteries, skip average calculation
+
+# Calculate the average ratio (sum / count)
+div r13 sumRatios activeCount  # r13 = sumRatios / activeCount
+j transmit                    # Send the result
+
+# Handle no active batteries
 no_data:
-set r0 0
-a trans Setting r0
+set r13 0   # Set average to 0 if no active batteries
+
+# Transmit the average ratio to the master
+transmit:
+a trans Setting r13   # Send the average ratio to the master
 
 # Receive the updated running average from the master
 receive:
@@ -30,13 +64,11 @@ l r1 rec Setting
 
 # If no data received, set LED to 0 instead of displaying bad data
 breqz r1 no_update
-s led Setting r1
-j main
+s led Setting r1      # Update the LED display with the received average
+j main                # Restart main loop
 
 # If no update from master, default LED to 0
 no_update:
 set r1 0
-s led Setting r1
-
-# Loop back to main
-j main
+s led Setting r1      # Set LED to 0
+j main                # Restart main loop
