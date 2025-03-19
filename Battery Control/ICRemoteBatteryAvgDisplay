@@ -5,16 +5,16 @@ alias rec d1
 alias led d5
 
 # Define the hashes for different battery types
-s batteryType1 -400115994 # Large Station Battery Hash
-s batteryType2 -1388288459  # Large Station Battery Hash
+#s batteryType1 -400115994 # Large Station Battery Hash
+#s batteryType2 -1388288459  # Large Station Battery Hash
 
-s currentBatteryType batteryType2 # set to type desired
+#s currentBatteryType batteryType2 # set to type desired
 
 # main loop
 main:
 
 # Read the ratio from all Station Batteries connected to local network
-lb r0 currentBatteryType Ratio Average
+lb r0 -1388288459 Ratio Average
 
 # Transmit the average ratio to the master
 transmit:
