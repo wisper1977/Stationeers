@@ -1,6 +1,9 @@
+# Arc Furnace Array Controller for Single Furnace
+# Model: AFAC6-101
+
 # Alias assignments
 alias ArcFurnace d0  # Furnace device
-alias Vent d5        # Active vent device (to be turned on when furnace is activated)
+alias Vent d5        # Active vent device (to be turned on and set inward)
 
 # Register aliases
 alias hasInput r3    # Flag: Does the furnace have input?
@@ -20,9 +23,10 @@ ls hasOutput d0 1 Occupied
 beq hasOutput 1 skip  # If output is full, skip activation
 
 # If we reached here, furnace can be activated
-# Turn on the furnace and the active vent at d5
+# Turn on the furnace and set the vent to inward
 s d0 On 1  # Turn on the furnace
 s d5 On 1  # Turn on the vent
+s d5 Direction 1  # Set the vent to inward direction (example)
 
 # End of logic, skip further checks
 skip:
