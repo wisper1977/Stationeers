@@ -1,1 +1,5 @@
+alias transmitter d0
+alias reciever d1
+alias led d2
+
 
