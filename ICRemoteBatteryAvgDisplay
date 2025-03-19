@@ -1,6 +1,6 @@
 alias trans d0
 alias rec d1
-alias led d2
+alias led d5
 
 # main  start
 main:
