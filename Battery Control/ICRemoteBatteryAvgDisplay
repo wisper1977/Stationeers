@@ -7,7 +7,7 @@ alias led d5
 # main loop
 main:
 yield
-# Read the ratio from all Station Batteries connected to local network
+# Read the ratio from all Large Station Batteries connected to local network
 lb r0 -1388288459 Ratio Average
 
 # Transmit the average ratio to the master
@@ -19,6 +19,5 @@ receive:
 l r1 rec Setting
 
 # If no data received, set LED to 0 instead of displaying bad data
-breqz r1 no_update
 s led Setting r1      # Update the LED display with the received average
 j main                # Restart main loop
