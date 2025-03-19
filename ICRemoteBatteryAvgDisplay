@@ -1,23 +1,42 @@
-alias trans d0
-alias rec d1
-alias led d5
+# Alias assignments
+alias trans d0     # Transmitter (sends local average to master)
+alias rec d1       # Receiver (gets the running average from master)
+alias led d5       # LED display
 
-# main  start
+# Main loop
 main:
+
+# Initialize local ratio variable
+set r0 0
 
 # Read the ratio from all Station Batteries connected to local network
 lb r0 -1388288459 Ratio Average
 
-# Transmit Average Ratio to distant reciver to calculate running average
+# Check if a valid ratio was read (avoid transmitting garbage data)
+breqz r0 no_data
+
+# Transmit the average ratio to the master controller
+a trans Setting r0
+j receive
+
+# If no valid data, transmit 0
+no_data:
+set r0 0
 a trans Setting r0
 
-# Reveive updated running average from main controller
+# Receive the updated running average from the master
+receive:
 l r1 rec Setting
 
-# Write running average to display
+# If no data received, set LED to 0 instead of displaying bad data
+breqz r1 no_update
 s led Setting r1
-
-# loop to main
 j main
 
+# If no update from master, default LED to 0
+no_update:
+set r1 0
+s led Setting r1
 
+# Loop back to main
+j main
