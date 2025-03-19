@@ -1,5 +1,23 @@
-alias transmitter d0
-alias reciever d1
+alias trans d0
+alias rec d1
 alias led d2
+
+# main  start
+main:
+
+# Read the ratio from all Station Batteries connected to local network
+lb r0 -1388288459 Ratio Average
+
+# Transmit Average Ratio to distant reciver to calculate running average
+a trans Setting r0
+
+# Reveive updated running average from main controller
+l r1 rec Setting
+
+# Write running average to display
+s led Setting r1
+
+# loop to main
+j main
 
 
