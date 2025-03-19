@@ -12,7 +12,7 @@ lb r0 -1388288459 Ratio Average
 
 # Transmit the average ratio to the master
 transmit:
-a trans Setting r0   # Send the average ratio to the master
+l trans Setting r0   # Send the average ratio to the master
 
 # Receive the updated running average from the master
 receive:
