@@ -1,0 +1,23 @@
+#Device Aliases
+alias transmitter d0
+alias reciever d1
+alias localDisplay d2
+alias remoteDisplay d5
+
+main:
+yield
+
+#Read the Ratio from all Station Batteries
+lb r0 -1388288459 Ratio Average
+
+#Send Average to distant Transmitter
+s transmitter Setting r0
+
+#Recieve update Avg from Reciever
+l r1 reciever Setting
+
+#Write Avg to display
+s localDisplay Setting r0
+s remoteDisplay Setting r1
+
+j main
