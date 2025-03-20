@@ -1,5 +1,4 @@
 # Arc Furnace Array Controller for Single Furnace
-# Model: AFAC6-101
 
 # Alias assignments
 alias ArcFurnace d0  # Furnace device
