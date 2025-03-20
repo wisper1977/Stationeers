@@ -1,0 +1,42 @@
+#Device Aliases
+alias transmitter d0
+alias rec1 d1
+alias rec2 d2
+alias rec3 d3
+alias rec4 d4
+alias display d5
+
+main:
+yield
+#Read the Ratio from all Station Batteries
+lb r0 -1388288459 Ratio Average
+add r6 0 1
+
+# Read Setting from all Recievers
+bdns rec1 19
+s rec1 Setting r1
+add r6 r6 1
+add r5 r0 r1
+bdns rec2 23
+s rec2 Setting r2
+add r6 r6 1
+add r5 r5 r2
+bdns rec3 27
+s rec3 Setting r3
+add r6 r6 1
+add r5 r5 r3
+bdns rec4 31
+s rec4 Setting r3
+add r6 r6 1
+add r5 r5 r4
+
+# Divide all settings and ratios
+div r5 r5 r6
+
+# Send Average to distant Transmitter
+s transmitter Setting r5
+
+# Write Avg to display
+s display Setting r5
+
+j main
