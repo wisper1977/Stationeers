@@ -1,33 +1,24 @@
-# Arc Furnace Array Controller for Single Furnace
+# Arc Furnace Controller
+alias ArcFurnace d0
+alias Vent d5
 
-# Alias assignments
-alias ArcFurnace d0  # Furnace device
-alias Vent d5        # Active vent device (to be turned on and set inward)
+alias hasInput r3
+alias hasOutput r1
 
-# Register aliases
-alias hasInput r3    # Flag: Does the furnace have input?
-alias hasOutput r1   # Flag: Is the furnace's output slot full?
-
-# Main loop
 start:
-# Ensure the furnace is powered off initially
-s d0 On 0  
+s d0 On 1 # Turn on Furnace
+s d5 Mode 1 # Set Vent to Inward
 
-# Check if the furnace has input material
-ls hasInput d0 0 Occupied
-beq hasInput 0 skip  # If no input, skip this furnace
+loop:
+ls hasInput d0 0 Occupied # Import
+beq hasInput 0 done
+ls hasOutput d0 1 Occupied # Export
+beq hasOutput 1 done
+s d0 Activate 1
 
-# Check if the furnace's output slot is occupied
-ls hasOutput d0 1 Occupied
-beq hasOutput 1 skip  # If output is full, skip activation
-
-# If we reached here, furnace can be activated
-# Turn on the furnace and set the vent to inward
-s d0 On 1  # Turn on the furnace
-s d5 On 1  # Turn on the vent
-s d5 Direction 1  # Set the vent to inward direction (example)
-
-# End of logic, skip further checks
-skip:
-yield  # Pause execution before restarting
-j start  # Restart the process
+done:
+l r0 d0 Activate
+sgtz r1 r0
+s d5 On r1
+yield
+j start
