@@ -1,0 +1,48 @@
+#Device Aliases
+alias transmitter d0
+alias reciever d1
+alias localDisplay d2
+alias remoteDisplay d5
+
+alias battTotal r8
+alias finalTotal r9
+alias sBattTotal r10
+alias lBattTotal r11
+
+main:
+yield
+
+lb r0 -400115994 PrefabHash Sum
+div r0 r0 -400115994
+
+lb r1 -1388288459 PrefabHash Sum
+div r1 r1 -1388288459
+
+smallBatt:
+beqz r0 largeBatt
+lb r0 -400115994 Ratio Average
+add sBattTotal 0 1
+
+largeBatt:
+beqz r1 localRatio
+lb r1 -1388288459 Ratio Average
+add lBattTotal 0 1
+
+localRatio:
+#Read the Ratio from all Station Batteries
+add finalTotal r0 r1
+add battTotal sBattTotal lBattTotal
+div finalTotal finalTotal battTotal
+add battTotal 0 1 # Resets battTotal to 1
+
+#Send Average to distant Transmitter
+s transmitter Setting finalTotal
+
+#Recieve update Avg from Reciever
+l r2 reciever Setting
+
+#Write Avg to display
+s localDisplay Setting finalTotal
+s remoteDisplay Setting r2
+
+j main
