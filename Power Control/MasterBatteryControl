@@ -6,37 +6,70 @@ alias rec3 d3
 alias rec4 d4
 alias display d5
 
+alias battTotal r8
+alias finalTotal r9
+alias sBattTotal r10
+alias lBattTotal r11
+
 main:
 yield
+
+lb r0 -400115994 PrefabHash Sum
+div r0 r0 -400115994
+
+lb r1 -1388288459 PrefabHash Sum
+div r1 r1 -1388288459
+
 #Read the Ratio from all Station Batteries
-lb r0 -1388288459 Ratio Average
-add r6 0 1
+smallBatt:
+beqz r0 largeBatt
+lb r0 -400115994 Ratio Average
+add sBattTotal 0 1
+
+largeBatt:
+beqz r1 localRatio
+lb r1 -1388288459 Ratio Average
+add lBattTotal 0 1
+
+localRatio:
+add finalTotal r0 r1
+add battTotal sBattTotal lBattTotal
+div finalTotal finalTotal battTotal
+add battTotal 0 1 # Resets battTotal to 1
 
 # Read Setting from all Recievers
-bdns rec1 19
-s rec1 Setting r1
-add r6 r6 1
-add r5 r0 r1
-bdns rec2 23
-s rec2 Setting r2
-add r6 r6 1
-add r5 r5 r2
-bdns rec3 27
-s rec3 Setting r3
-add r6 r6 1
-add r5 r5 r3
-bdns rec4 31
-s rec4 Setting r3
-add r6 r6 1
-add r5 r5 r4
+reciever1:
+bdns rec1 reciever2
+l r4 rec1 Setting
+add battTotal battTotal 1
+add finalTotal finalTotal r4
 
+reciever2:
+bdns rec2 reciever3
+l r5 rec2 Setting
+add battTotal battTotal 1
+add finalTotal finalTotal r5
+
+reciever3:
+bdns rec3 reciever4
+l r6 rec3 Setting
+add battTotal battTotal 1
+add finalTotal finalTotal r6
+
+reciever4:
+bdns rec4 final
+l r7 rec4 Setting
+add battTotal battTotal 1
+add finalTotal finalTotal r7
+
+final:
 # Divide all settings and ratios
-div r5 r5 r6
+div finalTotal finalTotal battTotal
 
 # Send Average to distant Transmitter
-s transmitter Setting r5
+s transmitter Setting finalTotal
 
 # Write Avg to display
-s display Setting r5
+s display Setting finalTotal
 
 j main
