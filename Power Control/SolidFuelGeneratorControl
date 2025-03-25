@@ -1,0 +1,44 @@
+# Regulate power levels 8/9/22
+alias generator d0
+alias battChargeReader d1
+alias activeVent d5
+alias fuelRequestSignal db
+
+alias isFueled r0
+alias charge r1
+alias generatorStatus r2
+alias isCharged r3
+alias isRunning r4
+
+define MAX_POWER 0.5
+define MIN_POWER 0.2
+
+Start:
+yield
+ls isFueled generator 0 Occupied
+bnez isFueled StartGenerator
+s activeVent Mode 1
+
+Fuel:
+yield
+s fuelRequestSignal Setting 1
+ls isFueled generator 0 Occupied
+beqz isFueled Fuel
+
+StartGenerator:
+s fuelRequestSignal Setting 0
+l charge battChargeReader Setting
+l generatorStatus generator On
+l isRunning generator On
+bnez generatorStatus Generating
+slt isCharged charge MIN_POWER
+j GeneratorControl
+
+Generating:
+slt isCharged charge MAX_POWER
+
+GeneratorControl:
+s generator On isCharged
+s activeVent On isRunning
+
+j Start
