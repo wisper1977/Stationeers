@@ -1,24 +1,32 @@
-# Arc Furnace Controller
 alias ArcFurnace d0
 alias Vent d5
 
-alias hasInput r3
+alias hasInput r0
 alias hasOutput r1
+alias ventTimer r2
+alias tmp r3
+
+define VENT_TIME 30
 
 start:
-s d0 On 1 # Turn on Furnace
-s d5 Mode 1 # Set Vent to Inward
+s ArcFurnace On 1
+s Vent Mode 1
+l ventTimer 0
 
 loop:
-ls hasInput d0 0 Occupied # Import
-beq hasInput 0 done
-ls hasOutput d0 1 Occupied # Export
-beq hasOutput 1 done
-s d0 Activate 1
+ls hasInput ArcFurnace 0 Occupied
+ls hasOutput ArcFurnace 1 Occupied
+beq hasInput 0 noActivate
+bne hasOutput 0 noActivate
+s ArcFurnace Activate 1
+l ventTimer VENT_TIME
 
-done:
-l r0 d0 Activate
-sgtz r1 r0
-s d5 On r1
+noActivate:
+sgtz tmp ventTimer
+s Vent On tmp
+beq ventTimer 0 endLoop
+sub ventTimer ventTimer 1
+
+endLoop:
 yield
-j start
+j loop
