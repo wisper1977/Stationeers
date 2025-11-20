@@ -1,0 +1,24 @@
+# Gax Mix Controller
+
+alias MixerNC d0
+alias MixerO d1
+alias Analyzer d2
+
+alias pressure r0
+alias mixOn r1
+alias mixNC r2
+alias mixO r3
+
+l mixNC MixerNC Setting
+l mixO MixerO Setting
+
+start:
+l pressure Analyzer Pressure
+slt mixOn pressure 18000
+s MixerNC On mixOn
+s MixerO On mixOn
+s MixerNC Setting mixNC
+s MixerO Setting mixO
+
+yield
+j start
