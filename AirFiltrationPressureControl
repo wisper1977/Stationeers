@@ -1,0 +1,13 @@
+#Airfilter Shutdown at 10Mpa
+alias PipeAnalyzer d0
+alias AirFilter d1
+
+alias pressure r0
+alias filterOn r1
+
+loop:
+l pressure PipeAnalyzer Pressure
+slt filterOn pressure 10000 # Change this for more pressure
+s AirFilter On filterOn
+yield
+j loop
