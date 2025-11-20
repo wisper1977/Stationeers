@@ -1,0 +1,117 @@
+# Room Pressure/Mix Control
+
+alias Sensor d0
+alias Vents d1
+alias Purge d2
+alias Alarm d3
+
+alias pressure r0
+alias pressureTooLow r1
+alias pressureTooHigh r2
+alias ventsOn r3
+alias n2 r4
+alias o2 r5
+alias co2 r6
+alias total r7
+alias pN2 r8
+alias pO2 r9
+alias pCO2 r10
+alias mixGood r11
+alias tmp r12
+alias tmp2 r13
+alias AlarmHash r14
+alias VentNameHash r15
+
+define Vent HASH("StructureActiveVent")
+
+l AlarmHash Alarm PrefabHash
+l VentNameHash Vents NameHash
+
+start:
+loop:
+l pressure Sensor Pressure
+slt pressureTooLow pressure 98
+sgt pressureTooHigh pressure 101
+
+l n2 Sensor RatioNitrogen
+l o2 Sensor RatioOxygen
+l co2 Sensor RatioCarbonDioxide
+add total n2 o2
+add total total co2
+
+beq total 0 mixVacuumCheck
+
+mul pN2 n2 100
+div pN2 pN2 total
+mul pO2 o2 100
+div pO2 pO2 total
+mul pCO2 co2 100
+div pCO2 pCO2 total
+
+sub mixGood mixGood mixGood
+add mixGood mixGood 1
+
+slt tmp pN2 70
+bne tmp 0 mixSetBad
+sgt tmp pN2 78
+bne tmp 0 mixSetBad
+
+slt tmp pO2 20
+bne tmp 0 mixSetBad
+sgt tmp pO2 28
+bne tmp 0 mixSetBad
+
+sgt tmp pCO2 4
+bne tmp 0 mixSetBad
+
+j afterMix
+
+mixVacuumCheck:
+sub mixGood mixGood mixGood
+beq pressure 0 mixSetGood
+j mixSetBad
+
+mixSetGood:
+add mixGood mixGood 1
+j afterMix
+
+mixSetBad:
+sub mixGood mixGood mixGood
+
+afterMix:
+beq mixGood 0 doPurge
+
+s Purge On 0
+sub tmp tmp tmp
+sb AlarmHash On tmp
+
+sub ventsOn ventsOn ventsOn
+bne pressureTooLow 0 doFill
+bne pressureTooHigh 0 doDrain
+j writeVents
+
+doFill:
+sub tmp tmp tmp          # Mode 0 = fill
+sbn Vent VentNameHash Mode tmp
+add ventsOn ventsOn 1
+j writeVents
+
+doDrain:
+sub tmp tmp tmp
+add tmp tmp 1            # Mode 1 = drain
+sbn Vent VentNameHash Mode tmp
+add ventsOn ventsOn 1
+
+writeVents:
+sbn Vent VentNameHash On ventsOn
+yield
+j loop
+
+doPurge:
+sbn Vent VentNameHash On 0
+s Purge Mode 1
+sgt tmp pressure 0
+s Purge On tmp
+sb AlarmHash On tmp
+yield
+j loop
