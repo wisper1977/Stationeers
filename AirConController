@@ -1,0 +1,24 @@
+alias AC db
+
+alias temperature r0
+alias poweron r1
+alias setpointK r2
+alias heating r3
+alias cooling r4
+alias highspK r5
+alias lowspK r6
+
+move setpointK 293
+sub lowspK setpointK 1
+add highspK setpointK 1
+
+loop:
+l temperature AC TemperatureInput
+sgt cooling temperature highspK
+slt heating temperature lowspK
+add poweron cooling heating
+sgt poweron poweron 0
+s AC Setting setpointK
+s AC Mode poweron
+yield
+j loop
